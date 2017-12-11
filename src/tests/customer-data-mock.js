@@ -2,7 +2,6 @@
 import customers from './customer-test-data';
 
 export default function (match) {
-  debugger; // eslint-disable-line
   if (match[1].indexOf('searchtext=') !== -1) {
     return customers.filter(c =>
       c.Name

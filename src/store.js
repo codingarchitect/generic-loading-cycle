@@ -9,6 +9,7 @@ import { makeHTTPDriver } from '@cycle/http';
 import { timeDriver } from '@cycle/time';
 import customerSearchCycle from './search-cycle';
 import customerGetCycle from './get-cycle';
+import genericCycle from './generic-cycle';
 import searchStore from './search-store';
 import fixtures from './tests/customer-data-mock';
 import mockSuperAgent from './utils/superagent';
@@ -40,12 +41,25 @@ const store = createStore(
   {},
   composeEnhancers(applyMiddleware(cycleMiddleware), ...enhancers));
 
+export function makeHTTPDriverEx() {
+  const httpDriver = makeHTTPDriver();
+  function httpDriverEx(request$, name) {
+    request$.addListener({
+      next: (x) => { console.log('Request Interceptor', x); return x; },
+      error: x => x,
+      complete: x => x,
+    });
+    return httpDriver(request$, name);
+  }
+  return httpDriverEx;
+}
+
 function attachCycle(cycle) {
   return run(cycle, {
     ACTION: makeActionDriver(),
     STATE: makeStateDriver(),
     Time: timeDriver,
-    HTTP: makeHTTPDriver(),
+    HTTP: makeHTTPDriverEx(),
   });
 }
 
@@ -59,6 +73,6 @@ function main(sources) {
   };
 }
 
-attachCycle(combineCycles(main, customerSearchCycle, customerGetCycle));
+attachCycle(combineCycles(main, customerSearchCycle, customerGetCycle, genericCycle));
 
 export default store;
